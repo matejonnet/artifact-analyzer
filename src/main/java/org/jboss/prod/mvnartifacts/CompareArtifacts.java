@@ -8,11 +8,14 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +40,7 @@ public class CompareArtifacts {
 		Map<String, Artifact> localBuilds = readLocalBuilds(poms);
 		Set<Artifact> missing = parseMissing(missingLog);
 		
-		Set<Artifact> missingAndLocalBuild = new HashSet<Artifact>(missing);
+		TreeSet<Artifact> missingAndLocalBuild = new TreeSet<Artifact>(missing);
 		missingAndLocalBuild.retainAll(localBuilds.values());
 		
 		System.out.println("=== LOCAL BUILDS ===");

@@ -2,7 +2,8 @@ package org.jboss.prod.mvnartifacts;
 
 import java.nio.file.Path;
 
-public class Artifact {
+public class Artifact implements Comparable<Artifact> {
+	
 	String groupId;
 	String artifactId;
 	String version;
@@ -60,6 +61,10 @@ public class Artifact {
 
 	public String key() {
 		return groupId + ":" + artifactId;
+	}
+
+	public int compareTo(Artifact o) {
+		return this.key().compareTo(o.key());
 	}
 	
 	
