@@ -1,9 +1,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.jboss.prod</groupId>
-  <artifactId>building-tools</artifactId>
+  <artifactId>artifact-aligner</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>Building tools</name>
+  <description>Compares missing.log produced by MEAD_check_artifact.sh with project sources POMs. Its main goal is to check if some of the missing artifact has the same ID and different version as one we are building in project.
+  Expose missing artifacts with same ID and different version.</description>
+  <name>Artifact Aligner</name>
   <dependencies>
   	<dependency>
   		<groupId>org.apache.maven</groupId>

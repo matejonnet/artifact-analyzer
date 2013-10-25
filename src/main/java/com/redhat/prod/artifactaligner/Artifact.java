@@ -1,4 +1,4 @@
-package org.jboss.prod.mvnartifacts;
+package com.redhat.prod.artifactaligner;
 
 import java.nio.file.Path;
 
