@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -29,40 +30,93 @@ public class CompareArtifacts {
 
 	public CompareArtifacts(File rootDir, File missingLog) throws FileNotFoundException, IOException {
 		List<File> poms = getPoms(rootDir);
-		Map<String, Artifact> localBuilds = readLocalBuilds(poms);
+		Set<Artifact> localBuilds = readLocalBuilds(poms);
+		Map<String, Set<Artifact>> localBuildsGrouped = groupById(localBuilds);
+		
 		Set<Artifact> missing = parseMissing(missingLog);
+		Map<String, Set<Artifact>> missingGrouped = groupById(missing);
 		
-		Set<Artifact> missingAndLocalBuild = new TreeSet<Artifact>(missing);
-		missingAndLocalBuild.retainAll(localBuilds.values());
-		
-		Set<Artifact> missingNoLocalBuild = new TreeSet<Artifact>(missing);
-		missingNoLocalBuild.removeAll(localBuilds.values());
-		
-		System.out.println("=== LOCAL BUILDS ===");
-		print(localBuilds.values());
+		System.out.println("");
+		System.out.println("## LOCAL BUILDS ##");
+		printGrouped(localBuildsGrouped);
 
-		System.out.println("=== MISSING ===");
-		print(missing);
+		System.out.println("");
+		System.out.println("## MISSING ##");
+		printGrouped(missingGrouped);
 		
-		System.out.println("=== LOCAL BUILD & MISSING ===");
-		
-		for (Artifact artifact : missingAndLocalBuild) {
-			Artifact local = localBuilds.get(artifact.key());
-			System.out.println(artifact + " - " + local);
+		System.out.println("");
+		System.out.println("## MISSING and LOCAL BUILD ##");
+		Set<String> missingAndLocalBuild = new TreeSet<>(missingGrouped.keySet());
+		missingAndLocalBuild.retainAll(localBuildsGrouped.keySet());
+		for (String key : missingAndLocalBuild) {
+			System.out.println("");
+			System.out.println("_localbuild_");
+			Set<Artifact> locals = localBuildsGrouped.get(key);
+			print(locals);
+			
+			System.out.println("_missing_");
+			Set<Artifact> missings = missingGrouped.get(key);
+			print(missings);
 		}
 
-		System.out.println("=== MISSING no LOCAL BUILD ===");
-		print(missingNoLocalBuild);
+		System.out.println("");
+		System.out.println("## MISSING NO LOCAL BUILD - IMPORT INTO BREW ##");
+		Set<String> missingNoLocalBuild = new TreeSet<>(missingGrouped.keySet());
+		missingNoLocalBuild.removeAll(localBuildsGrouped.keySet());
+		for (String key : missingNoLocalBuild) {
+			Set<Artifact> missings = missingGrouped.get(key);
+			print(missings);
+		}
+		
+		
 		
 	}
 
+	private void printGrouped(Map<String, Set<Artifact>> missingGrouped) {
+		for (Map.Entry<String, Set<Artifact>> artifactEntrys : missingGrouped.entrySet()) {
+			Set<Artifact> artifacts = artifactEntrys.getValue();
+			System.out.println("");
+			int size = artifacts.size();
+			if (size > 1) {
+				System.out.print("*");
+			}
+			System.out.print("[" + size + "]" + artifactEntrys.getKey());
+			System.out.println("");
+			for (Artifact artifact : artifacts) {
+				System.out.print("  ");
+				System.out.println(artifact);
+			}
+		}
+	}
+
+	/**
+	 * 
+	 * Returns Map of artifacts with different version and the same groupID/artifactID 
+	 */
+	private Map<String, Set<Artifact>> groupById(Set<Artifact> artifacts) {
+		Map<String, Set<Artifact>> grouped = new TreeMap<String, Set<Artifact>>();
+		
+		for (Artifact artifact : artifacts) {
+			String groupKey = groupKey(artifact);
+			Set<Artifact> group = grouped.get(groupKey);
+			if (group == null) {
+				group = new TreeSet<Artifact>();
+				grouped.put(groupKey, group);
+			}
+			group.add(artifact);
+		}
+		return grouped;
+	}
+	
+	private String groupKey(Artifact artifact) {
+		return artifact.groupId + ":" + artifact.artifactId;
+	}
 
 	private void print(Collection<?> list) {
 		for (Object line : list) {
 			System.out.println(line);
 		}
 	}
-
 
 	private Set<Artifact> parseMissing(File missingLog) throws IOException {
 		List<String> missing = Files.readAllLines(missingLog.toPath(), Charset.defaultCharset());
@@ -83,15 +137,14 @@ public class CompareArtifacts {
 		return artifacts;
 	}
 
-
-	private Map<String, Artifact> readLocalBuilds(List<File> poms) throws IOException, FileNotFoundException {
-		Map<String, Artifact> artifacts = new TreeMap<String, Artifact>();
+	private Set<Artifact> readLocalBuilds(List<File> poms) throws IOException, FileNotFoundException {
+		Set<Artifact> artifacts = new TreeSet<Artifact>();
 		for (File pom : poms) {
 			try {
 				MavenXpp3Reader reader = new MavenXpp3Reader();
 				Model model = reader.read(new FileReader(pom));
 				Artifact artifact = new Artifact(getGroupId(model), model.getArtifactId(), getVersion(model), pom.toPath());
-				artifacts.put(artifact.key(), artifact); 
+				artifacts.add(artifact); 
 			} catch (XmlPullParserException e) {
 				System.err.println("Parse error [" + e.getMessage() + "] in " + pom);
 			}
