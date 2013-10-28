@@ -1,13 +1,19 @@
 package com.redhat.prod.artifactaligner;
 
 import java.nio.file.Path;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class Artifact implements Comparable<Artifact> {
 	
 	String groupId;
 	String artifactId;
 	String version;
-	Path pom;
+	Set<Path> poms = new HashSet<Path>();
+	Set<Artifact> references = new HashSet<Artifact>();
+
+	private Set<Artifact> dependencies = new TreeSet<Artifact>();
 	
 	public Artifact(String groupId, String artifactId, String version) {
 		this.groupId = groupId;
@@ -15,25 +21,22 @@ public class Artifact implements Comparable<Artifact> {
 		this.version = version;
 	}
 	
-	public Artifact(String groupId, String artifactId, String version, Path pom) {
-		this.groupId = groupId;
-		this.artifactId = artifactId;
-		this.version = version;
-		this.pom = pom;
-	}
-	
 	@Override
 	public String toString() {
-		return groupId + ":" + artifactId + ":" + version + ( pom != null ? " - " + pom : "");
+		return groupId + ":" + artifactId + ":" + version + ( poms.size() > 0 ? " poms [" + poms + "]" : "");
 	}
 
 	/**
 	 * @return combination of groupId and artifactId 
 	 */
 	public String key() {
-		return groupId + ":" + artifactId + ":" + version;
+		return key(groupId, artifactId, version);
 	}
 
+	public static String key(String groupId, String artifactId, String version) {
+		return groupId + ":" + artifactId + ":" + version;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -75,6 +78,17 @@ public class Artifact implements Comparable<Artifact> {
 	public int compareTo(Artifact o) {
 		return this.key().compareTo(o.key());
 	}
+
+	public void addDependency(Artifact dependency) {
+		dependency.references.add(this);
+		dependencies.add(dependency);
+	}
 	
-	
+	public boolean hasDependency(Artifact artifact) {
+		return dependencies.contains(artifact);
+	}
+
+	public void addPom(Path path) {
+		poms.add(path);
+	}
 }

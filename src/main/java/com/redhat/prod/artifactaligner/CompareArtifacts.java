@@ -21,28 +21,45 @@ import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.model.Parent;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
 public class CompareArtifacts {
-
-	public CompareArtifacts(File rootDir, File missingLog) throws FileNotFoundException, IOException {
-		List<File> poms = getPoms(rootDir);
-		Set<Artifact> localBuilds = readLocalBuilds(poms);
-		Map<String, Set<Artifact>> localBuildsGrouped = groupById(localBuilds);
+	
+	ArtifactBuilder artifactBuilder;
+	
+	Map<String, Set<Artifact>> localBuildsGrouped;
+	Map<String, Set<Artifact>> repoGrouped;
+	Map<String, Set<Artifact>> missingGrouped;
+	
+	public CompareArtifacts(File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, IOException {
+		artifactBuilder = new ArtifactBuilder();
+		
+		List<File> sourcePoms = getPoms(sourcesRoot);
+		Set<Artifact> localBuilds = readPoms(sourcePoms);
+		localBuildsGrouped = groupById(localBuilds);
+		
+		List<File> repoPoms = getPoms(sourcesRoot);
+		Set<Artifact> repo = readPoms(repoPoms);
+		repoGrouped = groupById(repo);
 		
 		Set<Artifact> missing = parseMissing(missingLog);
-		Map<String, Set<Artifact>> missingGrouped = groupById(missing);
+		missingGrouped = groupById(missing);
 		
 		System.out.println("");
 		System.out.println("## LOCAL BUILDS ##");
-		printGrouped(localBuildsGrouped);
+		printGrouped(localBuildsGrouped, false);
 
 		System.out.println("");
+		System.out.println("## M2 repo " + m2Repo.getAbsolutePath() + " ##");
+		printGrouped(repoGrouped, false);
+		
+		System.out.println("");
 		System.out.println("## MISSING ##");
-		printGrouped(missingGrouped);
+		printGrouped(missingGrouped, true);
 		
 		System.out.println("");
 		System.out.println("## MISSING and LOCAL BUILD ##");
@@ -52,11 +69,11 @@ public class CompareArtifacts {
 			System.out.println("");
 			System.out.println("_localbuild_");
 			Set<Artifact> locals = localBuildsGrouped.get(key);
-			print(locals);
+			print(locals, false);
 			
 			System.out.println("_missing_");
 			Set<Artifact> missings = missingGrouped.get(key);
-			print(missings);
+			print(missings, true);
 		}
 
 		System.out.println("");
@@ -65,14 +82,11 @@ public class CompareArtifacts {
 		missingNoLocalBuild.removeAll(localBuildsGrouped.keySet());
 		for (String key : missingNoLocalBuild) {
 			Set<Artifact> missings = missingGrouped.get(key);
-			print(missings);
+			print(missings, true);
 		}
-		
-		
-		
 	}
 
-	private void printGrouped(Map<String, Set<Artifact>> missingGrouped) {
+	private void printGrouped(Map<String, Set<Artifact>> missingGrouped, boolean resolveReference) {
 		for (Map.Entry<String, Set<Artifact>> artifactEntrys : missingGrouped.entrySet()) {
 			Set<Artifact> artifacts = artifactEntrys.getValue();
 			System.out.println("");
@@ -84,7 +98,11 @@ public class CompareArtifacts {
 			System.out.println("");
 			for (Artifact artifact : artifacts) {
 				System.out.print("  ");
-				System.out.println(artifact);
+				System.out.print(artifact);
+				if (resolveReference) {
+					System.out.print("  ref(" + artifact.references.size() + "):" + getReferencesPom(artifact));
+				}
+				System.out.println("");
 			}
 		}
 	}
@@ -112,10 +130,25 @@ public class CompareArtifacts {
 		return artifact.groupId + ":" + artifact.artifactId;
 	}
 
-	private void print(Collection<?> list) {
-		for (Object line : list) {
-			System.out.println(line);
+	private void print(Collection<Artifact> artifacts, boolean resolveReference) {
+		for (Artifact artifact : artifacts) {
+			System.out.print(artifact);
+			if (resolveReference) {
+				System.out.print(" ref(" + artifact.references.size() + "):" + getReferencesPom(artifact));
+			}
+			System.out.println("");
 		}
+	}
+
+	/**
+	 * Return POM referencing given artifact 
+	 */
+	private Set<String> getReferencesPom(Artifact artifact) {
+		Set<String> references = new HashSet<String>();
+		for (Artifact ref : artifact.references) {
+			references.add(ref.poms.toString());
+		}
+		return references;
 	}
 
 	private Set<Artifact> parseMissing(File missingLog) throws IOException {
@@ -127,23 +160,30 @@ public class CompareArtifacts {
 			
 			Matcher matcher = p.matcher(line);
 			while (matcher.find()) {
-				Artifact artifact = new Artifact(
-						matcher.group(1),
-						matcher.group(2),
-						matcher.group(3));
+				Artifact artifact = artifactBuilder.getArtifact(
+														matcher.group(1),
+														matcher.group(2),
+														matcher.group(3));
 				artifacts.add(artifact); 
 			}
 		}
 		return artifacts;
 	}
 
-	private Set<Artifact> readLocalBuilds(List<File> poms) throws IOException, FileNotFoundException {
+	private Set<Artifact> readPoms(List<File> poms) throws IOException, FileNotFoundException {
 		Set<Artifact> artifacts = new TreeSet<Artifact>();
 		for (File pom : poms) {
 			try {
 				MavenXpp3Reader reader = new MavenXpp3Reader();
 				Model model = reader.read(new FileReader(pom));
-				Artifact artifact = new Artifact(getGroupId(model), model.getArtifactId(), getVersion(model), pom.toPath());
+				Artifact artifact = getArtifact(pom, model);
+				for(Dependency dependency : model.getDependencies()) {
+					artifact.addDependency(
+						artifactBuilder.getArtifact(
+							dependency.getGroupId(),
+							dependency.getArtifactId(),
+							dependency.getVersion()));
+				}
 				artifacts.add(artifact); 
 			} catch (XmlPullParserException e) {
 				System.err.println("Parse error [" + e.getMessage() + "] in " + pom);
@@ -152,6 +192,11 @@ public class CompareArtifacts {
 		return artifacts;
 	}
 
+	Artifact getArtifact(File pom, Model model) {
+		Artifact artifact = artifactBuilder.getArtifact(getGroupId(model), model.getArtifactId(), getVersion(model));
+		artifact.addPom(pom.toPath());
+		return artifact;
+	}
 
 	private String getVersion(Model model) {
 		String version = model.getVersion();
