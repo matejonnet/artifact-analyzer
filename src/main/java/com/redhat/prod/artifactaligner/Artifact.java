@@ -11,9 +11,13 @@ public class Artifact implements Comparable<Artifact> {
     String artifactId;
     String version;
     Set<Path> poms = new HashSet<Path>();
+    
+    Artifact parent;
+    
+    Set<Artifact> dependencies = new TreeSet<Artifact>();
+    
+    /** back reference to dependencies */
     Set<Artifact> references = new HashSet<Artifact>();
-
-    private Set<Artifact> dependencies = new TreeSet<Artifact>();
     
     public Artifact(String groupId, String artifactId, String version) {
         this.groupId = groupId;

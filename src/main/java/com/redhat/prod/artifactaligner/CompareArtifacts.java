@@ -2,41 +2,38 @@ package com.redhat.prod.artifactaligner;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.function.Predicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.apache.maven.model.Dependency;
-import org.apache.maven.model.Model;
-import org.apache.maven.model.Parent;
-import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
+import org.apache.maven.model.building.ModelBuildingException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
+import com.redhat.prod.artifactaligner.resolver.PomReader;
+
 public class CompareArtifacts {
-    
-    ArtifactBuilder artifactBuilder;
     
     Map<String, Set<Artifact>> localBuildsGrouped;
     Map<String, Set<Artifact>> repoGrouped;
     Map<String, Set<Artifact>> missingGrouped;
-    
-    public CompareArtifacts(File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, IOException {
+
+    private PomReader pomReader;
+    private ArtifactBuilder artifactBuilder;
+
+    public CompareArtifacts(File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, Exception {
         artifactBuilder = new ArtifactBuilder();
+
+        pomReader = new PomReader(m2Repo, artifactBuilder);
         
         List<File> sourcePoms = getPoms(sourcesRoot);
         Set<Artifact> localBuilds = readPoms(sourcePoms);
@@ -170,60 +167,22 @@ public class CompareArtifacts {
         return artifacts;
     }
 
-    private Set<Artifact> readPoms(List<File> poms) throws IOException, FileNotFoundException {
+    private Set<Artifact> readPoms(List<File> poms) throws Exception {
         Set<Artifact> artifacts = new TreeSet<Artifact>();
         for (File pom : poms) {
             try {
-                MavenXpp3Reader reader = new MavenXpp3Reader();
-                Model model = reader.read(new FileReader(pom));
-                Artifact artifact = getArtifact(pom, model);
-                for(Dependency dependency : model.getDependencies()) {
-                    artifact.addDependency(
-                        artifactBuilder.getArtifact(
-                            dependency.getGroupId(),
-                            dependency.getArtifactId(),
-                            dependency.getVersion()));
-                }
+                Artifact artifact = pomReader.readArtifactFromPom(pom);
                 artifacts.add(artifact); 
             } catch (XmlPullParserException e) {
                 System.err.println("Parse error [" + e.getMessage() + "] in " + pom);
+            } catch (ModelBuildingException e) {
+                System.err.println("Error reading POM [" + e.getMessage() + "] in " + pom);
             }
         }
         return artifacts;
     }
 
-    Artifact getArtifact(File pom, Model model) {
-        Artifact artifact = artifactBuilder.getArtifact(getGroupId(model), model.getArtifactId(), getVersion(model));
-        artifact.addPom(pom.toPath());
-        return artifact;
-    }
 
-    private String getVersion(Model model) {
-        String version = model.getVersion();
-        if (version != null) {
-            return version;
-        } else {
-            Parent parent = model.getParent();
-            if (parent != null) {
-                return parent.getVersion();
-            }
-        }
-        return null;
-    }    
-
-    private String getGroupId(Model model) {
-        String gid = model.getGroupId();
-        if (gid != null) {
-            return gid;
-        } else {
-            Parent parent = model.getParent();
-            if (parent != null) {
-                return parent.getGroupId();
-            }
-        }
-        return null;
-    }    
-    
     private List<File> getPoms(File parent) {
         List<File> poms = new ArrayList<File>();
         for (File file : parent.listFiles()) {
