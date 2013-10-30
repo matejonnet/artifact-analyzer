@@ -1,4 +1,4 @@
-package com.redhat.prod.artifactaligner;
+package com.redhat.prod.artifactanalyzer;
 
 import java.nio.file.Path;
 import java.util.HashSet;
@@ -27,7 +27,8 @@ public class Artifact implements Comparable<Artifact> {
     
     @Override
     public String toString() {
-        return groupId + ":" + artifactId + ":" + version + ( poms.size() > 0 ? " poms [" + poms + "]" : "");
+        String star = poms.size() > 1 ? "*" : "";
+        return groupId + ":" + artifactId + ":" + version + ( poms.size() > 0 ? " " + star + "poms[" + poms.size() + "] " + poms : "");
     }
 
     /**

@@ -1,4 +1,4 @@
-package com.redhat.prod.artifactaligner;
+package com.redhat.prod.artifactanalyzer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -19,10 +19,11 @@ import java.util.regex.Pattern;
 import org.apache.maven.model.building.ModelBuildingException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
 
-import com.redhat.prod.artifactaligner.resolver.PomReader;
+import com.redhat.prod.artifactanalyzer.resolver.PomReader;
 
 public class CompareArtifacts {
-    
+
+    /** grouped lists map key is artifactId without a version */
     Map<String, Set<Artifact>> localBuildsGrouped;
     Map<String, Set<Artifact>> repoGrouped;
     Map<String, Set<Artifact>> missingGrouped;
@@ -32,14 +33,17 @@ public class CompareArtifacts {
 
     public CompareArtifacts(File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, Exception {
         artifactBuilder = new ArtifactBuilder();
-
         pomReader = new PomReader(m2Repo, artifactBuilder);
         
-        List<File> sourcePoms = getPoms(sourcesRoot);
+        List<File> sourcePoms = findPoms(sourcesRoot);
         Set<Artifact> localBuilds = readPoms(sourcePoms);
         localBuildsGrouped = groupById(localBuilds);
-        
-        List<File> repoPoms = getPoms(sourcesRoot);
+
+        System.out.println("");
+        System.out.println("## 1. SOURCE POM ANALISE path:" + sourcesRoot.getAbsolutePath() + " ##");
+        printGrouped(localBuildsGrouped, false, false);
+
+        List<File> repoPoms = findPoms(m2Repo);
         Set<Artifact> repo = readPoms(repoPoms);
         repoGrouped = groupById(repo);
         
@@ -47,59 +51,52 @@ public class CompareArtifacts {
         missingGrouped = groupById(missing);
         
         System.out.println("");
-        System.out.println("## LOCAL BUILDS ##");
-        printGrouped(localBuildsGrouped, false);
-
-        System.out.println("");
-        System.out.println("## M2 repo " + m2Repo.getAbsolutePath() + " ##");
-        printGrouped(repoGrouped, false);
+        System.out.println("## 2. M2 WORKING REPO ANALISE (Artifact downloaded & installed during build) path:" + m2Repo.getAbsolutePath() + " ##");
+        printGrouped(repoGrouped, true, true);
         
         System.out.println("");
-        System.out.println("## MISSING ##");
-        printGrouped(missingGrouped, true);
+        System.out.println("## 3. MISSING (Anayse of artifacts from missing.log) ##");
+        printGrouped(missingGrouped, true, true);
         
         System.out.println("");
-        System.out.println("## MISSING and LOCAL BUILD ##");
+        System.out.println("## 4. MISSING and LOCAL SOURCE (A list of version mismatch) ##");
         Set<String> missingAndLocalBuild = new TreeSet<>(missingGrouped.keySet());
         missingAndLocalBuild.retainAll(localBuildsGrouped.keySet());
         for (String key : missingAndLocalBuild) {
             System.out.println("");
-            System.out.println("_localbuild_");
             Set<Artifact> locals = localBuildsGrouped.get(key);
-            print(locals, false);
+            print(locals, false, "local:");
             
-            System.out.println("_missing_");
             Set<Artifact> missings = missingGrouped.get(key);
-            print(missings, true);
+            print(missings, true, "miss :");
         }
 
         System.out.println("");
-        System.out.println("## MISSING NO LOCAL BUILD - IMPORT INTO BREW ##");
-        Set<String> missingNoLocalBuild = new TreeSet<>(missingGrouped.keySet());
-        missingNoLocalBuild.removeAll(localBuildsGrouped.keySet());
-        for (String key : missingNoLocalBuild) {
-            Set<Artifact> missings = missingGrouped.get(key);
-            print(missings, true);
-        }
+        System.out.println("## 5. MISSING & NO LOCAL BUILD (binaries to import) ##");
+        Set<Artifact> missingNoLocalBuild = new TreeSet<>(missing);
+        missingNoLocalBuild.removeAll(localBuilds);
+        print(missingNoLocalBuild, true, "");
     }
 
-    private void printGrouped(Map<String, Set<Artifact>> missingGrouped, boolean resolveReference) {
+    private void printGrouped(Map<String, Set<Artifact>> missingGrouped, boolean resolveReference, boolean printOnlyMoreThanOne) {
         for (Map.Entry<String, Set<Artifact>> artifactEntrys : missingGrouped.entrySet()) {
             Set<Artifact> artifacts = artifactEntrys.getValue();
-            System.out.println("");
             int size = artifacts.size();
-            if (size > 1) {
-                System.out.print("*");
-            }
-            System.out.print("[" + size + "]" + artifactEntrys.getKey());
-            System.out.println("");
-            for (Artifact artifact : artifacts) {
-                System.out.print("  ");
-                System.out.print(artifact);
-                if (resolveReference) {
-                    System.out.print("  ref(" + artifact.references.size() + "):" + getReferencesPom(artifact));
-                }
+            if (!printOnlyMoreThanOne || size > 1) {
                 System.out.println("");
+                if (size > 1) {
+                    System.out.print("*");
+                }
+                System.out.print("[" + size + "]" + artifactEntrys.getKey());
+                System.out.println("");
+                for (Artifact artifact : artifacts) {
+                    System.out.print("  ");
+                    System.out.print(artifact);
+                    if (resolveReference) {
+                        System.out.print("  ref(" + artifact.references.size() + "):" + getReferencesPom(artifact));
+                    }
+                    System.out.println("");
+                }
             }
         }
     }
@@ -127,9 +124,9 @@ public class CompareArtifacts {
         return artifact.groupId + ":" + artifact.artifactId;
     }
 
-    private void print(Collection<Artifact> artifacts, boolean resolveReference) {
+    private void print(Collection<Artifact> artifacts, boolean resolveReference, String prefix) {
         for (Artifact artifact : artifacts) {
-            System.out.print(artifact);
+            System.out.print(prefix + artifact);
             if (resolveReference) {
                 System.out.print(" ref(" + artifact.references.size() + "):" + getReferencesPom(artifact));
             }
@@ -183,13 +180,16 @@ public class CompareArtifacts {
     }
 
 
-    private List<File> getPoms(File parent) {
+    private List<File> findPoms(File parent) {
         List<File> poms = new ArrayList<File>();
         for (File file : parent.listFiles()) {
             if (file.isDirectory()) {
-                poms.addAll(getPoms(file));
-            } else if (file.getName().toLowerCase().equals("pom.xml")) {
-                poms.add(file);
+                poms.addAll(findPoms(file));
+            } else if (file.getName().toLowerCase().equals("pom.xml") 
+                    || file.getName().toLowerCase().endsWith(".pom")) {
+                if (!file.getAbsoluteFile().toString().contains("/target/")) {
+                    poms.add(file);
+                }
             }
         }
         return poms;

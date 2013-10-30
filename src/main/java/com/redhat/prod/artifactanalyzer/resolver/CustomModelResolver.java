@@ -1,4 +1,4 @@
-package com.redhat.prod.artifactaligner.resolver;
+package com.redhat.prod.artifactanalyzer.resolver;
 
 import java.io.File;
 
@@ -9,7 +9,7 @@ import org.apache.maven.model.resolution.InvalidRepositoryException;
 import org.apache.maven.model.resolution.ModelResolver;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 
-import com.redhat.prod.artifactaligner.aether.ArtifactResolver;
+import com.redhat.prod.artifactanalyzer.aether.ArtifactResolver;
 
 public class CustomModelResolver implements ModelResolver {
 

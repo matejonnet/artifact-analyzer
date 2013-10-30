@@ -1,4 +1,4 @@
-package com.redhat.prod.artifactaligner.aether;
+package com.redhat.prod.artifactanalyzer.aether;
 
 import java.io.File;
 
@@ -10,7 +10,7 @@ import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 
-import com.redhat.prod.artifactaligner.aether.util.Booter;
+import com.redhat.prod.artifactanalyzer.aether.util.Booter;
 
 /**
  * Resolves a single artifact.

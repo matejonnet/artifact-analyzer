@@ -1,4 +1,4 @@
-package com.redhat.prod.artifactaligner.resolver;
+package com.redhat.prod.artifactanalyzer.resolver;
 
 import java.io.File;
 import java.io.FileReader;
@@ -13,9 +13,9 @@ import org.apache.maven.model.building.ModelBuildingResult;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.resolution.ModelResolver;
 
-import com.redhat.prod.artifactaligner.Artifact;
-import com.redhat.prod.artifactaligner.ArtifactBuilder;
-import com.redhat.prod.artifactaligner.aether.ArtifactResolver;
+import com.redhat.prod.artifactanalyzer.Artifact;
+import com.redhat.prod.artifactanalyzer.ArtifactBuilder;
+import com.redhat.prod.artifactanalyzer.aether.ArtifactResolver;
 
 public class PomReader {
 

@@ -1,4 +1,4 @@
-package com.redhat.prod.artifactaligner;
+package com.redhat.prod.artifactanalyzer;
 
 import java.io.File;
 
