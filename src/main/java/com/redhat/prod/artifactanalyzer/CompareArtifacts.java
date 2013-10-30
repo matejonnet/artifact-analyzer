@@ -40,7 +40,7 @@ public class CompareArtifacts {
         localBuildsGrouped = groupById(localBuilds);
 
         System.out.println("");
-        System.out.println("## 1. SOURCE POM ANALISE path:" + sourcesRoot.getAbsolutePath() + " ##");
+        System.out.println("## 1. SOURCE POM ANALYZE path:" + sourcesRoot.getAbsolutePath() + " ##");
         printGrouped(localBuildsGrouped, false, false);
 
         List<File> repoPoms = findPoms(m2Repo);
@@ -51,11 +51,11 @@ public class CompareArtifacts {
         missingGrouped = groupById(missing);
         
         System.out.println("");
-        System.out.println("## 2. M2 WORKING REPO ANALISE (Artifact downloaded & installed during build) path:" + m2Repo.getAbsolutePath() + " ##");
+        System.out.println("## 2. M2 WORKING REPO ANALYZE (Artifact downloaded & installed during build) path:" + m2Repo.getAbsolutePath() + " ##");
         printGrouped(repoGrouped, true, true);
         
         System.out.println("");
-        System.out.println("## 3. MISSING (Anayse of artifacts from missing.log) ##");
+        System.out.println("## 3. MISSING (Anayze of artifacts from missing.log) ##");
         printGrouped(missingGrouped, true, true);
         
         System.out.println("");
@@ -72,7 +72,7 @@ public class CompareArtifacts {
         }
 
         System.out.println("");
-        System.out.println("## 5. MISSING & NO LOCAL BUILD (binaries to import) ##");
+        System.out.println("## 5. MISSING & NO LOCAL BUILD (imported binaries) ##");
         Set<Artifact> missingNoLocalBuild = new TreeSet<>(missing);
         missingNoLocalBuild.removeAll(localBuilds);
         print(missingNoLocalBuild, true, "");
