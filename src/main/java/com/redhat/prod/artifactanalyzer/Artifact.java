@@ -11,6 +11,8 @@ public class Artifact implements Comparable<Artifact> {
     String artifactId;
     String version;
     Set<Path> poms = new HashSet<Path>();
+    /*list of build from which this artifact is from */
+    Set<String> jobs = new HashSet<>();
     
     Artifact parent;
     
@@ -96,4 +98,8 @@ public class Artifact implements Comparable<Artifact> {
     public void addPom(Path path) {
         poms.add(path);
     }
+
+	public void addJob(String job) {
+		jobs.add(job);
+	}
 }

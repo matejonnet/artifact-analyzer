@@ -47,7 +47,8 @@ public class CompareArtifacts {
         Set<Artifact> repo = readPoms(repoPoms);
         repoGrouped = groupById(repo);
         
-        Set<Artifact> missing = parseMissing(missingLog);
+        ArtifactParser parser = new MissingLogParser(missingLog);
+        Set<Artifact> missing = parser.parse(artifactBuilder);
         missingGrouped = groupById(missing);
         
         System.out.println("");
@@ -143,25 +144,6 @@ public class CompareArtifacts {
             references.add(ref.poms.toString());
         }
         return references;
-    }
-
-    private Set<Artifact> parseMissing(File missingLog) throws IOException {
-        List<String> missing = Files.readAllLines(missingLog.toPath(), Charset.defaultCharset());
-        Set<Artifact> artifacts = new TreeSet<Artifact>();
-        for (String line : missing) {
-            //MISSING: org.rhq:safe-invoker:4.4.0 FROM:  DIR: org/rhq/safe-invoker/4.4.0
-            Pattern p = Pattern.compile("^MISSING: (.*):(.*):(.*) FROM:.*");
-            
-            Matcher matcher = p.matcher(line);
-            while (matcher.find()) {
-                Artifact artifact = artifactBuilder.getArtifact(
-                                                        matcher.group(1),
-                                                        matcher.group(2),
-                                                        matcher.group(3));
-                artifacts.add(artifact); 
-            }
-        }
-        return artifacts;
     }
 
     private Set<Artifact> readPoms(List<File> poms) throws Exception {
