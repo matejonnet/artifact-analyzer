@@ -30,7 +30,9 @@ public class Artifact implements Comparable<Artifact> {
     @Override
     public String toString() {
         String star = poms.size() > 1 ? "*" : "";
-        return groupId + ":" + artifactId + ":" + version + ( poms.size() > 0 ? " " + star + "poms[" + poms.size() + "] " + poms : "");
+        String pomString = poms.size() > 0 ? " " + star + "poms[" + poms.size() + "] " + poms : "";
+        String jobString = jobs.size() > 0 ? " jobs: ["  + jobs + "] " : "";
+		return groupId + ":" + artifactId + ":" + version + pomString + jobString;
     }
 
     /**
