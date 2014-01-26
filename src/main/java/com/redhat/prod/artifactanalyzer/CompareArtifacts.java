@@ -34,8 +34,9 @@ public class CompareArtifacts {
     public CompareArtifacts(File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, Exception {
         artifactBuilder = new ArtifactBuilder();
         pomReader = new PomReader(m2Repo, artifactBuilder);
-        
-        List<File> sourcePoms = findPoms(sourcesRoot);
+
+        MavenRepository sourceRepository = new MavenRepository(sourcesRoot);
+        List<File> sourcePoms = sourceRepository.getPoms();
         Set<Artifact> localBuilds = readPoms(sourcePoms);
         localBuildsGrouped = groupById(localBuilds);
 
@@ -43,7 +44,8 @@ public class CompareArtifacts {
         System.out.println("## 1. SOURCE POM ANALYZE path:" + sourcesRoot.getAbsolutePath() + " ##");
         printGrouped(localBuildsGrouped, false, false);
 
-        List<File> repoPoms = findPoms(m2Repo);
+        MavenRepository m2Repository = new MavenRepository(m2Repo);
+        List<File> repoPoms = m2Repository.getPoms();
         Set<Artifact> repo = readPoms(repoPoms);
         repoGrouped = groupById(repo);
         
@@ -162,18 +164,4 @@ public class CompareArtifacts {
     }
 
 
-    private List<File> findPoms(File parent) {
-        List<File> poms = new ArrayList<File>();
-        for (File file : parent.listFiles()) {
-            if (file.isDirectory()) {
-                poms.addAll(findPoms(file));
-            } else if (file.getName().toLowerCase().equals("pom.xml") 
-                    || file.getName().toLowerCase().endsWith(".pom")) {
-                if (!file.getAbsoluteFile().toString().contains("/target/")) {
-                    poms.add(file);
-                }
-            }
-        }
-        return poms;
-    }
 }
