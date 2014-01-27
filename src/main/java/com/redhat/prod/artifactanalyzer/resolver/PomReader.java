@@ -10,6 +10,7 @@ import org.apache.maven.model.building.DefaultModelBuildingRequest;
 import org.apache.maven.model.building.ModelBuilder;
 import org.apache.maven.model.building.ModelBuildingRequest;
 import org.apache.maven.model.building.ModelBuildingResult;
+import org.apache.maven.model.io.DefaultModelReader;
 import org.apache.maven.model.io.xpp3.MavenXpp3Reader;
 import org.apache.maven.model.resolution.ModelResolver;
 
@@ -23,16 +24,22 @@ public class PomReader {
     private DefaultModelBuilderFactory modelBuilderFactory;
     private ArtifactBuilder artifactBuilder;
     
-    public PomReader(File localMavenRepo, ArtifactBuilder artifactBuilder) {
+    /**
+     * 
+     * @param repositoryRoot
+     * @param artifactBuilder
+     * @param useCentral use maven central for resolving parent 
+     */
+    public PomReader(File repositoryRoot, ArtifactBuilder artifactBuilder, boolean useCentral) {
         this.artifactBuilder = artifactBuilder;
-        resolver = new ArtifactResolver(localMavenRepo);
+        resolver = new ArtifactResolver(repositoryRoot, useCentral);
         modelBuilderFactory = new DefaultModelBuilderFactory();
     }
     
     public Artifact readArtifactFromPom(File pom) throws Exception {
 
         ModelBuilder modelBuilder = modelBuilderFactory.newInstance();
-
+        
         ModelResolver mr = new CustomModelResolver(resolver);
         
         ModelBuildingRequest request = new DefaultModelBuildingRequest()
@@ -44,8 +51,8 @@ public class PomReader {
         ModelBuildingResult result = null;
         try {
             result = modelBuilder.build(request);
-        } catch(IllegalArgumentException e) {
-            System.err.println("Cannot resolve pom: " + e);
+        } catch(Exception e) {
+            System.err.println("Cannot resolve pom: " + pom + " " + e.getMessage());
         }
         
         Model model;

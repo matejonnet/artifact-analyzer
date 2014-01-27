@@ -33,7 +33,7 @@ public class CompareArtifacts {
 
     public CompareArtifacts(File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, Exception {
         artifactBuilder = new ArtifactBuilder();
-        pomReader = new PomReader(m2Repo, artifactBuilder);
+        pomReader = new PomReader(m2Repo, artifactBuilder, false); //TODO use central ?
 
         MavenRepository sourceRepository = new MavenRepository(sourcesRoot);
         List<File> sourcePoms = sourceRepository.getPoms();
