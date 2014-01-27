@@ -46,19 +46,24 @@ public class PomReader {
             .setProcessPlugins( false )
             .setPomFile( pom )
             .setModelResolver( mr)
-            .setValidationLevel( ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL );
+            .setValidationLevel( ModelBuildingRequest.VALIDATION_LEVEL_MINIMAL )
+            .setSystemProperties(System.getProperties())
+            .setTwoPhaseBuilding(true);
 
         ModelBuildingResult result = null;
         try {
             result = modelBuilder.build(request);
         } catch(Exception e) {
-            System.err.println("Cannot resolve pom: " + pom + " " + e.getMessage());
+            System.err.println("Cannot read pom: " + pom + " " + e.getMessage());
+            e.printStackTrace();
         }
         
         Model model;
         if (result != null) {
             model = result.getEffectiveModel();
         } else {
+        	//TODO log
+        	System.out.println("Warn: using fallback to simpel model resolver for: " + pom);
             MavenXpp3Reader reader = new MavenXpp3Reader();
             model = reader.read(new FileReader(pom));
         }
