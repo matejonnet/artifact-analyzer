@@ -19,3 +19,20 @@
 - poms[n] number of poms with the same artifact definition folowed by list of POMs
 - ref (n) references to this artifact. POMs that define this as dependency (TODO: not always resolved)
 
+## Examples command line options
+    
+list all repo artifacts
+
+    -l -r ./m2-repos/leveldbjni/
+    
+print distinct artifacts only
+
+    -d /home/matej/temp/filtered.txt
+
+parse missing logs from jenkins
+    
+    -p -d -url-template "http://<host>/hudson/job/<job-prefix>-%job%/lastBuild/consoleText" -jobs  ActiveMQ,AriesBlueprint,AriesJMX
+
+DistinctArtifacts
+
+    -DmissingLog=./mead-simulator-missing.log
