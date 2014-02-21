@@ -36,3 +36,10 @@ parse missing logs from jenkins
 DistinctArtifacts
 
     -DmissingLog=./mead-simulator-missing.log
+
+
+Analize project (cmd -a, hardcoded paths )
+
+    File missingLog
+    File sourceRoot
+    File m2Repo
