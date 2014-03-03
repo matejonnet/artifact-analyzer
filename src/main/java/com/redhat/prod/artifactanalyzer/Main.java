@@ -2,6 +2,7 @@ package com.redhat.prod.artifactanalyzer;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -22,6 +23,7 @@ public class Main {
 		options.addOption("d", false, "Print only distinct artifacts from file.");
 		options.addOption("a", false, "Analyze project.");
 		options.addOption("l", false, "List all repo artifacts.");
+		options.addOption("j", true, "Join lists of artifacts.");
 		options.addOption("u", "url-template", true, "Jenkins jobs.");
 		options.addOption("j", "jobs", true, "Jenkins jobs.");
 		options.addOption("r", "repo", true, "Maven repo root.");
@@ -101,6 +103,24 @@ public class Main {
 					artifactWritter.writeGAV(artifact);
 					System.out.println();
 				}
+			}
+		} else if (cmd.hasOption("j")) {
+			String[] lists = cmd.getOptionValue("j").split(",");
+			if (lists.length < 1) {
+				System.out.println("You must specify at least one file.");
+				printHelp(options);
+				return;
+			} else {
+				Set<Artifact> artifacts = new HashSet<>();
+				for (String listPath : lists) {
+					File list = new File(listPath);
+					LogContent logContent = new ArtifactListReader(list);
+					ArtifactParser listParser = new ArtifactListParser(logContent.getLogLines());
+					artifacts.addAll(listParser.parse(ArtifactBuilder.getInstance()));
+				}
+				for (Artifact artifact : artifacts) {
+					System.out.println(artifact);
+				}	
 			}
 		}
 	}

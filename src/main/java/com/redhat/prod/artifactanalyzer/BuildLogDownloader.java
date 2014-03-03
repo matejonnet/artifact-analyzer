@@ -23,7 +23,7 @@ public class BuildLogDownloader extends LogContent {
 			String line;
 			while ((line = in.readLine()) != null) {
 				if (line.startsWith("GAV=")) {
-					logLines.add(new LogLine(line, job));
+					logLines.add(new LogLine(line.replaceFirst("GAV=", ""), job));
 				}
 			}
 			in.close();

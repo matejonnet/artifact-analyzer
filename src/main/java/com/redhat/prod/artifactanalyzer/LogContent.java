@@ -13,4 +13,7 @@ class LogContent {
 		}
 	}
 
+	public List<LogLine> getLogLines() {
+		return logLines;
+	}
 }

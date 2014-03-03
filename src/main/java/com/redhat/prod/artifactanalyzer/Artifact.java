@@ -104,7 +104,7 @@ public class Artifact implements Comparable<Artifact> {
         poms.add(path);
     }
 
-	public void addJob(String job) {
+	public void addOrigin(String job) {
 		jobs.add(job);
 	}
 }

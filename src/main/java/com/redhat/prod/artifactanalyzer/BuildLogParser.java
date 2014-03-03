@@ -19,8 +19,8 @@ public class BuildLogParser implements ArtifactParser {
         
         Set<Artifact> artifacts = new TreeSet<Artifact>();
         for (LogLine missingArtifact : logLines) {
-        	//GAV=org.apache.cxf:cxf-wstx-msv-validation:jar:javadoc:2.7.0
-            Pattern p = Pattern.compile("^GAV=(.+?):(.+?):(.*):(.+)");
+        	//org.apache.cxf:cxf-wstx-msv-validation:jar:javadoc:2.7.0
+            Pattern p = Pattern.compile("^(.+?):(.+?):(.*):(.+)");
             
             Matcher matcher = p.matcher(missingArtifact.getLine());
             while (matcher.find()) {
@@ -29,7 +29,7 @@ public class BuildLogParser implements ArtifactParser {
                                                         matcher.group(2),
                                                         "",
                                                         matcher.group(4));
-                artifact.addJob(missingArtifact.getOrigin());
+                artifact.addOrigin(missingArtifact.getOrigin());
                 artifacts.add(artifact); 
             }
         }

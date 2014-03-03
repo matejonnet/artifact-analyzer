@@ -14,6 +14,7 @@ public class MissingLogParser implements ArtifactParser {
 
 	private List<LogLine> logLines;
 
+	//TODO remove, use ListReader
 	public MissingLogParser(File missingLog) throws IOException {
 		List<String> missingLines = Files.readAllLines(missingLog.toPath(), Charset.defaultCharset());
 		for (String line : missingLines) {
@@ -33,8 +34,8 @@ public class MissingLogParser implements ArtifactParser {
         
         Set<Artifact> artifacts = new TreeSet<Artifact>();
         for (LogLine missingArtifact : logLines) {
-            //MISSING: org.rhq:safe-invoker:4.4.0 FROM:  DIR: org/rhq/safe-invoker/4.4.0
-            Pattern p = Pattern.compile("^MISSING: (.*):(.*):(.*) FROM:.*");
+            //org.rhq:safe-invoker:4.4.0 FROM:  DIR: org/rhq/safe-invoker/4.4.0
+            Pattern p = Pattern.compile("^(.*):(.*):(.*) FROM:.*");
             
             Matcher matcher = p.matcher(missingArtifact.getLine());
             while (matcher.find()) {
@@ -43,7 +44,7 @@ public class MissingLogParser implements ArtifactParser {
                                                         matcher.group(2),
                                                         "",
                                                         matcher.group(3));
-                artifact.addJob(missingArtifact.getOrigin());
+                artifact.addOrigin(missingArtifact.getOrigin());
                 artifacts.add(artifact); 
             }
         }

@@ -23,7 +23,7 @@ public class MissingLogDownloader extends LogContent {
 			String line;
 			while ((line = in.readLine()) != null) {
 				if (line.startsWith("MISSING:")) {
-					logLines.add(new LogLine(line, job));
+					logLines.add(new LogLine(line.replaceFirst("MISSING: ", ""), job));
 				}
 			}
 			in.close();
