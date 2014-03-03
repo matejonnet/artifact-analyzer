@@ -2,10 +2,6 @@ package com.redhat.prod.artifactanalyzer;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -13,8 +9,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.maven.model.building.ModelBuildingException;
 import org.codehaus.plexus.util.xml.pull.XmlPullParserException;
@@ -29,10 +23,8 @@ public class CompareArtifacts {
     Map<String, Set<Artifact>> missingGrouped;
 
     private PomReader pomReader;
-    private ArtifactBuilder artifactBuilder;
 
-    public CompareArtifacts(File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, Exception {
-        artifactBuilder = new ArtifactBuilder();
+    public CompareArtifacts(ArtifactBuilder artifactBuilder, File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, Exception {
         pomReader = new PomReader(m2Repo, artifactBuilder, false); //TODO use central ?
 
         MavenRepository sourceRepository = new MavenRepository(sourcesRoot);

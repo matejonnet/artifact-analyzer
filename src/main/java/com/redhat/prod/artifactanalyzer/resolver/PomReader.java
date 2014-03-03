@@ -74,13 +74,14 @@ public class PomReader {
                 artifactBuilder.getArtifact(
                     dependency.getGroupId(),
                     dependency.getArtifactId(),
+                    dependency.getClassifier(),
                     dependency.getVersion()));
         }
         return artifact;
     }
 
     private Artifact getArtifact(File pom, Model model) {
-        Artifact artifact = artifactBuilder.getArtifact(model.getGroupId(), model.getArtifactId(), model.getVersion());
+        Artifact artifact = artifactBuilder.getArtifact(model.getGroupId(), model.getArtifactId(), "", model.getVersion());
         artifact.addPom(pom.toPath());
         return artifact;
     }

@@ -3,6 +3,7 @@ package com.redhat.prod.artifactanalyzer;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import org.apache.commons.cli.BasicParser;
 import org.apache.commons.cli.CommandLine;
@@ -17,6 +18,7 @@ public class Main {
 	public static void main(String[] args) throws Exception {
 		Options options = new Options();
 		options.addOption("p", false, "Parse log.");
+		options.addOption("b", false, "Parse build GAVs.");
 		options.addOption("d", false, "Print only distinct artifacts from file.");
 		options.addOption("a", false, "Analyze project.");
 		options.addOption("l", false, "List all repo artifacts.");
@@ -37,13 +39,30 @@ public class Main {
 			String urlTempalte = cmd.getOptionValue("u");
 			String[] jobs = cmd.getOptionValue("j").split(",");
 			
-			DownloadMissingLogs missingLog = new DownloadMissingLogs(urlTempalte, jobs);
-			if (cmd.hasOption("d")) {
-				new DistinctArtifacts(missingLog.missingLog);
-			} else {
-				missingLog.print();
+			LogContent missingLog = new MissingLogDownloader(urlTempalte, jobs);
+			ArtifactParser artifactParser = new MissingLogParser(missingLog.logLines);
+			Set<Artifact> missingArtifacts = artifactParser.parse(ArtifactBuilder.getInstance());
+
+			for (Artifact artifact : missingArtifacts) {
+				System.out.println(artifact);
 			}
+
+		} else if (cmd.hasOption("b")) {
+			if (!cmd.hasOption("u") || !cmd.hasOption("j")) {
+				printHelp(options);
+				return;
+			}
+
+			String urlTempalte = cmd.getOptionValue("u");
+			String[] jobs = cmd.getOptionValue("j").split(",");
 			
+			LogContent buildGavs = new BuildLogDownloader(urlTempalte, jobs);
+			ArtifactParser artifactParser = new BuildLogParser(buildGavs.logLines); 
+			Set<Artifact> missingArtifacts = artifactParser.parse(ArtifactBuilder.getInstance());
+			for (Artifact artifact : missingArtifacts) {
+				System.out.println(artifact);
+			}
+
 		} else if (cmd.hasOption("d")) {
 			File missingLog = new File(cmd.getOptionValue("d"));
 			if (!missingLog.exists()) {
@@ -51,14 +70,18 @@ public class Main {
 				printHelp(options);
 				return;
 			}
-			new DistinctArtifacts(missingLog);
-		
+			ArtifactParser artifactParser = new MissingLogParser(missingLog);
+			Set<Artifact> missingArtifacts = artifactParser.parse(ArtifactBuilder.getInstance());
+
+			for (Artifact artifact : missingArtifacts) {
+				System.out.println(artifact);
+			}		
 		} else if (cmd.hasOption("a")) {
 	        File missingLog = new File("/home/matej/workspace/soa-p/make-mead/missing.log");
 	        File sourceRoot = new File("/home/matej/workspace/soa-p/repos/");
 	        File m2Repo = new File("/home/matej/workspace/soa-p/m2-repo/");
 	        
-	        new CompareArtifacts(sourceRoot, missingLog, m2Repo);
+	        new CompareArtifacts(ArtifactBuilder.getInstance(), sourceRoot, missingLog, m2Repo);
 
 		} else if (cmd.hasOption("l")) {
 			if (!cmd.hasOption("repo")) {

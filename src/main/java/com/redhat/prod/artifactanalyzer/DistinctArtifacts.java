@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Set;
 
+@Deprecated
 public class DistinctArtifacts {
 
 	ArtifactBuilder artifactBuilder = new ArtifactBuilder();
@@ -13,7 +14,7 @@ public class DistinctArtifacts {
         parseMissing(parser);
     }
 
-	public DistinctArtifacts(List<MissingArtifact> missingLog) throws Exception {
+	public DistinctArtifacts(List<LogLine> missingLog) throws Exception {
 		ArtifactParser parser = new MissingLogParser(missingLog);
 		parseMissing(parser);
 	}
@@ -22,7 +23,6 @@ public class DistinctArtifacts {
 		Set<Artifact> missing = parser.parse(artifactBuilder);
 		for (Artifact artifact : missing) {
 			System.out.println(artifact);
-			//System.out.println(artifact.toString().replaceAll(":", " "));
 		}
 	}
 	

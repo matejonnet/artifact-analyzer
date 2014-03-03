@@ -20,10 +20,13 @@ public class Artifact implements Comparable<Artifact> {
     
     /** back reference to dependencies */
     Set<Artifact> references = new HashSet<Artifact>();
+	
+    private String classifier;
     
-    public Artifact(String groupId, String artifactId, String version) {
+    public Artifact(String groupId, String artifactId, String classifier, String version) {
         this.groupId = groupId;
         this.artifactId = artifactId;
+		this.classifier = classifier;
         this.version = version;
     }
     
@@ -39,10 +42,10 @@ public class Artifact implements Comparable<Artifact> {
      * @return combination of groupId and artifactId 
      */
     public String key() {
-        return key(groupId, artifactId, version);
+        return key(groupId, artifactId, classifier, version);
     }
 
-    public static String key(String groupId, String artifactId, String version) {
+    public static String key(String groupId, String artifactId, String classifier, String version) {
         return groupId + ":" + artifactId + ":" + version;
     }
     

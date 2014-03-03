@@ -1,30 +1,16 @@
 package com.redhat.prod.artifactanalyzer;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.Charset;
-import java.nio.file.Files;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class MissingLogParser implements ArtifactParser {
+public class BuildLogParser implements ArtifactParser {
 
 	private List<LogLine> logLines;
 
-	public MissingLogParser(File missingLog) throws IOException {
-		List<String> missingLines = Files.readAllLines(missingLog.toPath(), Charset.defaultCharset());
-		for (String line : missingLines) {
-        	if (line.startsWith("#")) {
-        		continue;
-        	}
-			logLines.add(new LogLine(line, missingLog.getName()));
-		}
-	}
-	
-	public MissingLogParser(List<LogLine> missingLogLines) {
+	public BuildLogParser(List<LogLine> missingLogLines) {
 		this.logLines = missingLogLines;
 	}
 	
@@ -33,8 +19,8 @@ public class MissingLogParser implements ArtifactParser {
         
         Set<Artifact> artifacts = new TreeSet<Artifact>();
         for (LogLine missingArtifact : logLines) {
-            //MISSING: org.rhq:safe-invoker:4.4.0 FROM:  DIR: org/rhq/safe-invoker/4.4.0
-            Pattern p = Pattern.compile("^MISSING: (.*):(.*):(.*) FROM:.*");
+        	//GAV=org.apache.cxf:cxf-wstx-msv-validation:jar:javadoc:2.7.0
+            Pattern p = Pattern.compile("^GAV=(.+?):(.+?):(.*):(.+)");
             
             Matcher matcher = p.matcher(missingArtifact.getLine());
             while (matcher.find()) {
@@ -42,7 +28,7 @@ public class MissingLogParser implements ArtifactParser {
                                                         matcher.group(1),
                                                         matcher.group(2),
                                                         "",
-                                                        matcher.group(3));
+                                                        matcher.group(4));
                 artifact.addJob(missingArtifact.getOrigin());
                 artifacts.add(artifact); 
             }
