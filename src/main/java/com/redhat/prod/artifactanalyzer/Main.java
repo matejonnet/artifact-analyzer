@@ -81,7 +81,10 @@ public class Main {
 	        File sourceRoot = new File("/home/matej/workspace/soa-p/repos/");
 	        File m2Repo = new File("/home/matej/workspace/soa-p/m2-repo/");
 	        
-	        new CompareArtifacts(ArtifactBuilder.getInstance(), sourceRoot, missingLog, m2Repo);
+	        ArtifactParser artifactParser = new MissingLogParser(missingLog);
+	        Set<Artifact> missingArtifacts = artifactParser.parse(ArtifactBuilder.getInstance());
+
+	        new CompareArtifacts(ArtifactBuilder.getInstance(), sourceRoot, missingArtifacts, m2Repo);
 
 		} else if (cmd.hasOption("l")) {
 			if (!cmd.hasOption("repo")) {

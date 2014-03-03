@@ -24,7 +24,7 @@ public class CompareArtifacts {
 
     private PomReader pomReader;
 
-    public CompareArtifacts(ArtifactBuilder artifactBuilder, File sourcesRoot, File missingLog, File m2Repo) throws FileNotFoundException, Exception {
+    public CompareArtifacts(ArtifactBuilder artifactBuilder, File sourcesRoot, Set<Artifact> missingArtifacts, File m2Repo) throws FileNotFoundException, Exception {
         pomReader = new PomReader(m2Repo, artifactBuilder, false); //TODO use central ?
 
         MavenRepository sourceRepository = new MavenRepository(sourcesRoot);
@@ -41,9 +41,7 @@ public class CompareArtifacts {
         Set<Artifact> repo = readPoms(repoPoms);
         repoGrouped = groupById(repo);
         
-        ArtifactParser parser = new MissingLogParser(missingLog);
-        Set<Artifact> missing = parser.parse(artifactBuilder);
-        missingGrouped = groupById(missing);
+        missingGrouped = groupById(missingArtifacts);
         
         System.out.println("");
         System.out.println("## 2. M2 WORKING REPO ANALYZE (Artifact downloaded & installed during build) path:" + m2Repo.getAbsolutePath() + " ##");
@@ -68,7 +66,7 @@ public class CompareArtifacts {
 
         System.out.println("");
         System.out.println("## 5. MISSING & NO LOCAL BUILD (imported binaries) ##");
-        Set<Artifact> missingNoLocalBuild = new TreeSet<>(missing);
+        Set<Artifact> missingNoLocalBuild = new TreeSet<>(missingArtifacts);
         missingNoLocalBuild.removeAll(localBuilds);
         print(missingNoLocalBuild, true, "");
     }
