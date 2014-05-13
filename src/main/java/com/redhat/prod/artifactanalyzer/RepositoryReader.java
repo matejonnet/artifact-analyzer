@@ -6,11 +6,11 @@ import java.util.List;
 
 import com.redhat.prod.artifactanalyzer.resolver.PomReader;
 
-public class RepoReader {
+public class RepositoryReader {
 
 	private File repositoryRoot;
 
-	public RepoReader(File repositoryRoot) {
+	public RepositoryReader(File repositoryRoot) {
 		this.repositoryRoot = repositoryRoot;
 	}
 
