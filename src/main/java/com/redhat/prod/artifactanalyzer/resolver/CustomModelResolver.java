@@ -1,7 +1,6 @@
 package com.redhat.prod.artifactanalyzer.resolver;
 
-import java.io.File;
-
+import com.redhat.prod.artifactanalyzer.aether.ArtifactResolver;
 import org.apache.maven.model.Repository;
 import org.apache.maven.model.building.FileModelSource;
 import org.apache.maven.model.building.ModelSource;
@@ -9,7 +8,7 @@ import org.apache.maven.model.resolution.InvalidRepositoryException;
 import org.apache.maven.model.resolution.ModelResolver;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 
-import com.redhat.prod.artifactanalyzer.aether.ArtifactResolver;
+import java.io.File;
 
 public class CustomModelResolver implements ModelResolver {
 
@@ -27,6 +26,7 @@ public class CustomModelResolver implements ModelResolver {
         } catch (ArtifactResolutionException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
+            return null;
         }
         return new FileModelSource(pomFile);
     }

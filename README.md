@@ -4,7 +4,7 @@
 
 *SOURCE POM ANALYZE* contains a list of local artifacts parsed from POMs in sources
 
-*M2 WORKING REPO ANALYZE* a list of artifacts from ocal maven repo
+*M2 WORKING REPO ANALYZE* a list of artifacts from local maven repo
 
 *MISSING* a list of artifacts parsed from file
 

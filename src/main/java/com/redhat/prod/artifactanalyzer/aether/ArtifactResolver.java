@@ -1,7 +1,6 @@
 package com.redhat.prod.artifactanalyzer.aether;
 
-import java.io.File;
-
+import com.redhat.prod.artifactanalyzer.aether.util.Booter;
 import org.eclipse.aether.RepositorySystem;
 import org.eclipse.aether.RepositorySystemSession;
 import org.eclipse.aether.artifact.Artifact;
@@ -11,16 +10,16 @@ import org.eclipse.aether.resolution.ArtifactRequest;
 import org.eclipse.aether.resolution.ArtifactResolutionException;
 import org.eclipse.aether.resolution.ArtifactResult;
 
-import com.redhat.prod.artifactanalyzer.aether.util.Booter;
+import java.io.File;
 
 /**
  * Resolves a single artifact.
  */
 public class ArtifactResolver {
-    
-    private RepositorySystem system;
-    private RepositorySystemSession session;
-	private boolean useCentral;
+
+    private final RepositorySystem system;
+    private final RepositorySystemSession session;
+	private final boolean useCentral;
 
     public ArtifactResolver(File localRepoPath, boolean useCentral) {
         this.useCentral = useCentral;

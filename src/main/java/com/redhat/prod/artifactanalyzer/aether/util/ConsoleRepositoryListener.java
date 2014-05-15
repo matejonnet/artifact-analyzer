@@ -10,16 +10,15 @@
  *******************************************************************************/
 package com.redhat.prod.artifactanalyzer.aether.util;
 
-import java.io.PrintStream;
-
 import org.eclipse.aether.AbstractRepositoryListener;
 import org.eclipse.aether.RepositoryEvent;
+
+import java.io.PrintStream;
 
 /**
  * A simplistic repository listener that logs events to the console.
  */
-public class ConsoleRepositoryListener
-    extends AbstractRepositoryListener
+public class ConsoleRepositoryListener extends AbstractRepositoryListener
 {
 
     private PrintStream out;
