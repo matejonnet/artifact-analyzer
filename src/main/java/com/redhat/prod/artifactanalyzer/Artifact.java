@@ -146,4 +146,8 @@ public class Artifact implements Comparable<Artifact> {
     public Set<Artifact> getDependencies() {
         return dependencies;
     }
+
+    public Set<Path> getPoms() {
+        return poms;
+    }
 }

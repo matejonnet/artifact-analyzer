@@ -196,7 +196,7 @@ public class Main {
         if (m2RepoArtifactsGrouped != null) {
             System.out.println("");
             System.out.println("## M2 WORKING REPO ANALYZE (Artifact downloaded & installed during build) ##");
-            writer.writeGrouped(m2RepoArtifactsGrouped, true, false);
+            writer.writeGrouped(m2RepoArtifactsGrouped, true, true, srcRootPath, 2);
             System.out.println("-------------------");
             System.out.println("");
         }
@@ -204,7 +204,7 @@ public class Main {
         if (sourceArtifactsGrouped != null) {
             System.out.println("");
             System.out.println("## SOURCE POM ANALYZE ##");
-            writer.writeGrouped(sourceArtifactsGrouped, true, false);
+            writer.writeGrouped(sourceArtifactsGrouped, true, true, srcRootPath, 2);
             System.out.println("-------------------");
             System.out.println("");
         }

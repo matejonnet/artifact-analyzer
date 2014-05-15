@@ -32,7 +32,7 @@ public class CompareArtifacts {
 
         System.out.println("");
         System.out.println("## 1. SOURCE POM ANALYZE path:" + sourcesRoot.getAbsolutePath() + " ##");
-        writer.writeGrouped(localBuildsGrouped, false, false);
+        writer.writeGrouped(localBuildsGrouped, false, false, null, 0);
 
         PomDirectory m2Repository = new PomDirectory(m2Repo);
         List<File> repoPoms = m2Repository.getPoms();
@@ -43,11 +43,11 @@ public class CompareArtifacts {
         
         System.out.println("");
         System.out.println("## 2. M2 WORKING REPO ANALYZE (Artifact downloaded & installed during build) path:" + m2Repo.getAbsolutePath() + " ##");
-        writer.writeGrouped(repoGrouped, true, true);
+        writer.writeGrouped(repoGrouped, true, true, null, 0);
         
         System.out.println("");
         System.out.println("## 3. MISSING (Anayze of artifacts from missing.log) ##");
-        writer.writeGrouped(missingGrouped, true, true);
+        writer.writeGrouped(missingGrouped, true, true, null, 0);
         
         System.out.println("");
         System.out.println("## 4. MISSING and LOCAL SOURCE (A list of version mismatch) ##");
