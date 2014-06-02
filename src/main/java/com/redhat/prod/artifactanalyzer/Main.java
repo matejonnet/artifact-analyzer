@@ -3,10 +3,7 @@ package com.redhat.prod.artifactanalyzer;
 import org.apache.commons.cli.*;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class Main {
 
@@ -16,6 +13,14 @@ public class Main {
         Main main = new Main();
         main.run(args);
     }
+
+
+    private static Option longOption(String longOpt, String description) {
+        return OptionBuilder.withLongOpt(longOpt)
+                .withDescription(description)
+                .create();
+    }
+
 
     public void run(String[] args) throws Exception {
         Options options = new Options();
@@ -30,10 +35,8 @@ public class Main {
         options.addOption("j", "jobs", true, "Jenkins jobs.");
         options.addOption("r", "repo", true, "Maven repo root.");
         options.addOption("s", "sources", true, "Sources root.");
-//        Option analyzeRepo = OptionBuilder.withLongOpt("analyze")
-//                .withDescription("Print out all artifacts found in repo. Artifacts are grouped by GA")
-//                .create();
-//        options.addOption(analyzeRepo);
+        Option analyzeRepo = longOption("makefile", "Create makefile dependencies.");
+        options.addOption(analyzeRepo);
 
         CommandLineParser parser = new BasicParser();
         CommandLine cmd = parser.parse( options, args);
@@ -135,6 +138,15 @@ public class Main {
                     System.out.println(artifact);
                 }
             }
+        } else if (cmd.hasOption("makefile")) {
+            String srcRootPath = cmd.getOptionValue("s");
+
+            if (srcRootPath == null) {
+                System.out.println("Specify sources root.");
+                printHelp(options);
+                return;
+            }
+            generateMakefileDependencies(srcRootPath);
         } else if (cmd.hasOption("a")) {
             String srcRootPath = cmd.getOptionValue("s");
             String m2RepoRootPath = cmd.getOptionValue("r");
@@ -161,6 +173,40 @@ public class Main {
         }
 
     }
+
+    private void generateMakefileDependencies(String srcRootPath) {
+        File srcRoot = new File(srcRootPath);
+        File[] projectRoots = getProjectRoots(srcRoot);
+
+        List<Project> projects = getProjects(projectRoots);
+        for (Project project : projects) {
+            project.resolveDependencies(projects);
+        }
+
+        System.out.println("Makefile dependency map:");
+        for (Project project : projects) {
+            System.out.println(project);
+            System.out.print(": ");
+            System.out.print(project.getDependencies());
+        }
+
+    }
+
+    private List<Project> getProjects(File[] projectRoots) {
+        List<Project> projects = new ArrayList<>();
+        for (File projectRoot : projectRoots) {
+            PomDirectoryReader repositoryReader = new PomDirectoryReader(projectRoot);
+            List<Artifact> artifacts = repositoryReader.getAllRepoArtifacts(true, skipIfPathContains);
+            Project project = new Project(projectRoot.getName(), artifacts);
+            projects.add(project);
+        }
+        return projects;
+    }
+
+    private File[] getProjectRoots(File srcRootPath) {
+        return srcRootPath.listFiles();
+    }
+
 
     private void analyze(String srcRootPath, String m2RepoRootPath) {
         ArtifactSorter artifactSorter = new ArtifactSorter();
