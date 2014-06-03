@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Created by <a href="mailto:matejonnet@gmail.com">Matej Lazar</a> on 2014-06-03.
  */
-public class Project {
+public class Project implements Comparable {
 
     private String name;
     private List<Artifact> artifacts;
@@ -36,7 +36,7 @@ public class Project {
      */
     private boolean depends(Artifact artifact) {
         for (Artifact localArtifact : artifacts) {
-            if (localArtifact.getDependencies().contains(artifact)) {
+            if (localArtifact.dependenciesContainGA(artifact)) {
                 return true;
             }
         }
@@ -55,4 +55,10 @@ public class Project {
     public String toString() {
         return name;
     }
+
+    @Override
+    public int compareTo(Object o) {
+        return toString().compareTo(o.toString());
+    }
+
 }

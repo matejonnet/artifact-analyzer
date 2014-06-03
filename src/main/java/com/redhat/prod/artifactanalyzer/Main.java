@@ -184,12 +184,18 @@ public class Main {
         }
 
         System.out.println("Makefile dependency map:");
-        for (Project project : projects) {
-            System.out.println(project);
-            System.out.print(": ");
-            System.out.print(project.getDependencies());
-        }
+        projects.stream()
+                .sorted()
+                .forEach(p -> printWithDependencies(p));
+    }
 
+    private void printWithDependencies(Project project) {
+        System.out.print(project);
+        System.out.print(": ");
+        project.getDependencies().stream()
+                .sorted()
+                .forEach(s -> System.out.print(s + " "));
+        System.out.println("");
     }
 
     private List<Project> getProjects(File[] projectRoots) {

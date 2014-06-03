@@ -150,4 +150,14 @@ public class Artifact implements Comparable<Artifact> {
     public Set<Path> getPoms() {
         return poms;
     }
+
+    public boolean dependenciesContainGA(Artifact artifact) {
+        for (Artifact dependency : dependencies) {
+            if (dependency.groupId.equals(artifact.groupId)
+                    && dependency.artifactId.equals(artifact.artifactId)) {
+                return true;
+            }
+        }
+        return false;
+    }
 }
