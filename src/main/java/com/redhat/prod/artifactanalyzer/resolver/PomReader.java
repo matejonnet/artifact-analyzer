@@ -32,6 +32,13 @@ public class PomReader {
         modelBuilderFactory = new DefaultModelBuilderFactory();
     }
 
+    /**
+     * Return resolved artifact GAV that is defined in given pom file.
+     *
+     * @param pom
+     * @return
+     * @throws Exception
+     */
     public Artifact readArtifactFromPom(File pom) throws Exception {
 
         Model model = null;
@@ -57,6 +64,28 @@ public class PomReader {
                     "", //ignore classifier
                     dependency.getVersion()));
         }
+// resolve plugins and dependencies
+//        List<Plugin> plugins = model.getBuild().getPlugins();
+//        for (Plugin plugin : plugins) {
+//            plugin.getDependencies();
+//        }
+//        model.getDependencyManagement().getDependencies()
+
+        //add references to pom that defines the artifact in its dependency management section
+//        List<Dependency> dependencies = model.getDependencyManagement().getDependencies();
+//        for (Dependency dependency : dependencies) {
+//            artifact.addDependency(
+//                    artifactBuilder.getArtifact(
+//                            dependency.getGroupId(),
+//                            dependency.getArtifactId(),
+//                            //dependency.getType(),
+//                            "", //ignore type
+//                            //dependency.getClassifier(),
+//                            "", //ignore classifier
+//                            dependency.getVersion()));
+//        }
+
+
         return artifact;
     }
 

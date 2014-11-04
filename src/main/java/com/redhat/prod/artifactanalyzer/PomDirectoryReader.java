@@ -27,9 +27,17 @@ public class PomDirectoryReader {
         this.repositoryRoot = repositoryRoot;
     }
 
+    /**
+     *
+     *
+     * @param useCentral
+     * @param skipIfPathContains
+     * @return
+     */
 	public List<Artifact> getAllRepoArtifacts(boolean useCentral, String[] skipIfPathContains) {
 		PomDirectory repository = new PomDirectory(rootFolder, skipIfPathContains);
-		List<File> poms = repository.getPoms();
+		/** List of all artifacts that are defined in poms under this.rootFolder */
+        List<File> poms = repository.getPoms();
 		ArtifactBuilder artifactBuilder = ArtifactBuilder.getInstance();
 		PomReader pomReader = new PomReader(repositoryRoot, artifactBuilder, useCentral);
 		List<Artifact> artifacts = new ArrayList<>();

@@ -16,6 +16,7 @@ public class Artifact implements Comparable<Artifact> {
     /*list of builds from which this artifact is from */
     Set<String> jobs = new HashSet<>();
 
+
     Artifact parent;
 
     Set<Artifact> dependencies = new TreeSet<Artifact>();
